@@ -32,16 +32,27 @@
       z-index: 1;
       pointer-events: none;
     }
+
+    .btn-permission {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      padding: 1em 2em;
+      font-size: 18px;
+      z-index: 2;
+    }
   </style>
 </head>
 <body>
   <video autoplay playsinline muted></video>
   <img class="overlay" src="l_2019031301000728400040591.jpg" alt="여성 독립운동가">
+  <button class="btn-permission" id="btnRequest">기기 움직임 허용</button>
 
   <script>
     navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: { exact: "environment" } 
+        facingMode: { exact: "environment" }
       }
     })
     .then(stream => {
@@ -53,17 +64,34 @@
       console.error("카메라 접근 실패:", err);
     });
 
-    // 이미지 위치 제어
     const overlay = document.querySelector(".overlay");
+    const btn = document.getElementById("btnRequest");
 
-    window.addEventListener("deviceorientation", (event) => {
-      const { alpha, beta, gamma } = event;
+    function handleOrientation(event) {
+      const { beta, gamma } = event;
 
-
-      const offsetX = gamma * 2;
-      const offsetY = beta * 2;
+      const offsetX = gamma * 3;
+      const offsetY = beta * 3;
 
       overlay.style.transform = `translate(calc(-50vw + ${offsetX}px), calc(-50vh + ${offsetY}px))`;
+    }
+
+    btn.addEventListener("click", () => {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(response => {
+            if (response === 'granted') {
+              window.addEventListener("deviceorientation", handleOrientation);
+              btn.style.display = "none";
+            } else {
+              alert("기기 센서 접근이 거부되었습니다.");
+            }
+          })
+          .catch(console.error);
+      } else {
+        window.addEventListener("deviceorientation", handleOrientation);
+        btn.style.display = "none";
+      }
     });
   </script>
 </body>
