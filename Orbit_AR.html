@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>AR 위 여성 독립운동가들</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+
+    video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    .overlay {
+      position: fixed;
+      top: -50vh;
+      left: -50vw;
+      width: 200vw; /* 화면보다 크게 */
+      height: auto;
+      z-index: 1;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <video autoplay playsinline muted></video>
+  <img class="overlay" src="l_2019031301000728400040591.jpg" alt="여성 독립운동가">
+
+  <script>
+    navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: { exact: "environment" } // 후면 카메라 요청
+      }
+    })
+    .then(stream => {
+      const video = document.querySelector("video");
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(err => {
+      console.error("카메라 접근 실패:", err);
+    });
+  </script>
+</body>
+</html>
