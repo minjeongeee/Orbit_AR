@@ -24,10 +24,11 @@
 
     .overlay {
       position: fixed;
-      top: -50vh;
-      left: -50vw;
+      top: 0;
+      left: 0;
       width: 200vw;
       height: auto;
+      transform: translate(-50vw, -50vh);
       z-index: 1;
       pointer-events: none;
     }
@@ -40,7 +41,7 @@
   <script>
     navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: { exact: "environment" } // 후면 카메라 요청
+        facingMode: { exact: "environment" } 
       }
     })
     .then(stream => {
@@ -50,6 +51,19 @@
     })
     .catch(err => {
       console.error("카메라 접근 실패:", err);
+    });
+
+    // 이미지 위치 제어
+    const overlay = document.querySelector(".overlay");
+
+    window.addEventListener("deviceorientation", (event) => {
+      const { alpha, beta, gamma } = event;
+
+
+      const offsetX = gamma * 2;
+      const offsetY = beta * 2;
+
+      overlay.style.transform = `translate(calc(-50vw + ${offsetX}px), calc(-50vh + ${offsetY}px))`;
     });
   </script>
 </body>
