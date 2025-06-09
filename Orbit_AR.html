@@ -11,7 +11,6 @@
       overflow: hidden;
       background-color: black;
     }
-
     video {
       position: fixed;
       top: 0;
@@ -21,7 +20,6 @@
       object-fit: cover;
       z-index: 0;
     }
-
     .overlay {
       position: fixed;
       top: 0;
@@ -32,7 +30,6 @@
       z-index: 1;
       pointer-events: none;
     }
-
     .btn-permission {
       position: absolute;
       top: 50%;
@@ -68,11 +65,32 @@
     const btn = document.getElementById("btnRequest");
 
     function handleOrientation(event) {
-      const { beta, gamma } = event;
-
-      const offsetX = gamma * 3;
-      const offsetY = beta * 3;
-
+      let { beta, gamma } = event;
+      const orientation = screen.orientation?.angle || window.orientation || 0;
+      let offsetX = 0;
+      let offsetY = 0;
+      switch (orientation) {
+        case 0:
+          offsetX = gamma * 3;
+          offsetY = beta * 3;
+          break;
+        case 90:
+          offsetX = beta * 3;
+          offsetY = -gamma * 3;
+          break;
+        case -90:
+        case 270:
+          offsetX = -beta * 3;
+          offsetY = gamma * 3;
+          break;
+        case 180:
+          offsetX = -gamma * 3;
+          offsetY = -beta * 3;
+          break;
+        default:
+          offsetX = gamma * 3;
+          offsetY = beta * 3;
+      }
       overlay.style.transform = `translate(calc(-50vw + ${offsetX}px), calc(-50vh + ${offsetY}px))`;
     }
 
