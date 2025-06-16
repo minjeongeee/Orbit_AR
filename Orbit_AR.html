@@ -2,91 +2,46 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>WebXR 거리 기반 AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>USDZ AR with Camera</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
   <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
-    #enter-ar {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      font-size: 18px;
-      z-index: 10;
+    body, html {
+      margin: 0; padding: 0; overflow: hidden; background: black;
+      display: flex; justify-content: center; align-items: center; height: 100vh;
+    }
+    model-viewer {
+      width: 100vw; height: 100vh;
+      --progress-bar-color: #00ff00;
     }
   </style>
 </head>
 <body>
-  <button id="enter-ar">AR 시작</button>
 
-  <script type="module">
-    import * as THREE from 'https://cdn.skypack.dev/three@0.153.0';
-    import { ARButton } from 'https://cdn.skypack.dev/three@0.153.0/examples/jsm/webxr/ARButton.js';
+<model-viewer
+  id="ar-model"
+  src="dori.usdz"
+  alt="Dori 3D Model"
+  ios-src="dori.usdz"
+  ar
+  camera-controls
+  auto-rotate
+  environment-image="neutral"
+  style="transform-origin:center center;"
+></model-viewer>
 
-    let camera, scene, renderer;
-    let imageMesh;
+<script>
+  const modelViewer = document.querySelector('#ar-model');
+  let scale = 1;
 
-    init();
-    animate();
+  window.addEventListener('devicemotion', (event) => {
+    if (!event.accelerationIncludingGravity) return;
+    
+    const zAcc = event.accelerationIncludingGravity.z || 0;
+    scale = 1 + Math.min(Math.max(-zAcc / 10, 0), 1); 
+    modelViewer.style.transform = `scale(${scale.toFixed(2)})`;
+  });
+</script>
 
-    function init() {
-
-      scene = new THREE.Scene();
-      camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
-
-      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-      renderer.setSize(window.innerWidth, window.innerHeight);
-      renderer.xr.enabled = true;
-      document.body.appendChild(renderer.domElement);
-
-
-      const loader = new THREE.TextureLoader();
-      loader.load('l_2019031301000728400040591.jpg', texture => {
-        const geometry = new THREE.PlaneGeometry(1, 1.5); 
-        const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
-        imageMesh = new THREE.Mesh(geometry, material);
-
-        imageMesh.position.set(0, 0, -2); 
-        scene.add(imageMesh);
-      });
-
-
-      document.getElementById('enter-ar').addEventListener('click', () => {
-        document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
-      });
-
-      window.addEventListener('resize', onWindowResize);
-    }
-
-    function onWindowResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    }
-
-    function animate() {
-      renderer.setAnimationLoop(render);
-    }
-
-    function render(timestamp, frame) {
-      if (imageMesh && frame) {
-        const refSpace = renderer.xr.getReferenceSpace();
-        const viewerPose = frame.getViewerPose(refSpace);
-
-        if (viewerPose) {
-          const pos = viewerPose.transform.position;
-          const dx = pos.x - imageMesh.position.x;
-          const dy = pos.y - imageMesh.position.y;
-          const dz = pos.z - imageMesh.position.z;
-          const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-
-          const scale = THREE.MathUtils.clamp(2 / distance, 0.5, 4);
-          imageMesh.scale.set(scale, scale, scale);
-        }
-      }
-
-      renderer.render(scene, camera);
-    }
-  </script>
 </body>
 </html>
