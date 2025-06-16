@@ -47,6 +47,7 @@
   <button class="btn-permission" id="btnRequest">기기 움직임 허용</button>
 
   <script>
+    // 카메라 접근
     navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { exact: "environment" }
@@ -64,38 +65,42 @@
     const overlay = document.querySelector(".overlay");
     const btn = document.getElementById("btnRequest");
 
+    // 센서 데이터 처리
     function handleOrientation(event) {
       let { beta, gamma } = event;
       const orientation = screen.orientation?.angle || window.orientation || 0;
       let offsetX = 0;
       let offsetY = 0;
+
       switch (orientation) {
-        case 0:
-          offsetX = gamma * 3;
-          offsetY = beta * 3;
+        case 0: // 세로 모드 (기기를 똑바로 세운 상태)
+          offsetX = gamma * 3;         // 좌우 기울기
+          offsetY = -beta * 3;         // 앞뒤 기울기 (위/아래 방향 보정)
           break;
-        case 90:
+        case 90: // 가로 모드 (오른쪽으로 회전)
           offsetX = beta * 3;
           offsetY = -gamma * 3;
           break;
         case -90:
-        case 270:
+        case 270: // 가로 모드 (왼쪽으로 회전)
           offsetX = -beta * 3;
           offsetY = gamma * 3;
           break;
-        case 180:
+        case 180: // 거꾸로 든 세로
           offsetX = -gamma * 3;
-          offsetY = -beta * 3;
+          offsetY = beta * 3;
           break;
         default:
           offsetX = gamma * 3;
-          offsetY = beta * 3;
+          offsetY = -beta * 3;
       }
+
       overlay.style.transform = `translate(calc(-50vw + ${offsetX}px), calc(-50vh + ${offsetY}px))`;
     }
 
+    // 권한 요청 및 이벤트 등록
     btn.addEventListener("click", () => {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+      if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
         DeviceOrientationEvent.requestPermission()
           .then(response => {
             if (response === 'granted') {
@@ -107,6 +112,7 @@
           })
           .catch(console.error);
       } else {
+        // 안드로이드 또는 데스크탑: 권한 요청 없음
         window.addEventListener("deviceorientation", handleOrientation);
         btn.style.display = "none";
       }
